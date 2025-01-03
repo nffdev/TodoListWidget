@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace ToDoListWidget
 {
@@ -12,14 +13,22 @@ namespace ToDoListWidget
         private Button removeButton;
         private NotifyIcon trayIcon;
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll")]
+        private static extern int SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+
+        private const int HWND_MESSAGE = -3;
+
         public ToDoForm()
         {
             this.Text = "To-Do List";
             this.Size = new Size(300, 400);
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.Manual;
-            this.TopMost = true;
-            this.Location = new Point(0, 0);
+            this.TopMost = false;
+            this.ShowInTaskbar = false;
 
             toDoList = new ListBox() { Top = 10, Left = 10, Width = 260, Height = 250 };
             inputBox = new TextBox() { Top = 270, Left = 10, Width = 180 };
@@ -62,7 +71,17 @@ namespace ToDoListWidget
             };
 
             this.Shown += (s, e) => this.Hide();
-            this.ShowInTaskbar = false;
+
+            MoveToDesktop();
+        }
+
+        private void MoveToDesktop()
+        {
+            IntPtr desktopHandle = FindWindow("Progman", null);
+            if (desktopHandle != IntPtr.Zero)
+            {
+                SetParent(this.Handle, desktopHandle);
+            }
         }
 
         private void AddButton_Click(object sender, EventArgs e)
