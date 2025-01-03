@@ -24,7 +24,7 @@ namespace ToDoListWidget
         public ToDoForm()
         {
             this.Text = "To-Do List";
-            this.Size = new Size(200, 300);
+            this.Size = new Size(300, 200);
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.Manual;
             this.TopMost = false;
@@ -37,16 +37,16 @@ namespace ToDoListWidget
             {
                 Top = 10,
                 Left = 10,
-                Width = 180,
-                Height = 200,
+                Width = 280,
+                Height = 130,
                 AutoScroll = true,
                 BackColor = Color.Transparent
             };
 
-            inputBox = new TextBox() { Top = 220, Left = 10, Width = 120, BorderStyle = BorderStyle.FixedSingle };
+            inputBox = new TextBox() { Top = 150, Left = 10, Width = 200, BorderStyle = BorderStyle.FixedSingle };
             inputBox.KeyDown += InputBox_KeyDown;
 
-            addButton = new Button() { Text = "Add", Top = 220, Left = 140, Width = 50, FlatStyle = FlatStyle.Flat };
+            addButton = new Button() { Text = "Add", Top = 150, Left = 220, Width = 50, FlatStyle = FlatStyle.Flat };
 
             addButton.Click += AddButton_Click;
 
@@ -81,14 +81,12 @@ namespace ToDoListWidget
                 }
             };
 
-            this.Shown += (s, e) => this.Hide();
-
             MoveToDesktop();
 
             this.Resize += (s, e) =>
             {
                 taskPanel.Width = this.ClientSize.Width - 20;
-                taskPanel.Height = this.ClientSize.Height - 100;
+                taskPanel.Height = this.ClientSize.Height - 70;
                 inputBox.Width = this.ClientSize.Width - 80;
                 addButton.Left = this.ClientSize.Width - 60;
                 addButton.Top = this.ClientSize.Height - 40;
@@ -97,6 +95,8 @@ namespace ToDoListWidget
 
             this.MouseDown += Form_MouseDown;
             this.MouseMove += Form_MouseMove;
+
+            this.Shown += (s, e) => this.Show();
         }
 
         private bool dragging = false;
