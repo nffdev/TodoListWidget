@@ -44,6 +44,8 @@ namespace ToDoListWidget
             };
 
             inputBox = new TextBox() { Top = 220, Left = 10, Width = 120, BorderStyle = BorderStyle.FixedSingle };
+            inputBox.KeyDown += InputBox_KeyDown;
+
             addButton = new Button() { Text = "Add", Top = 220, Left = 140, Width = 50, FlatStyle = FlatStyle.Flat };
 
             addButton.Click += AddButton_Click;
@@ -144,7 +146,22 @@ namespace ToDoListWidget
             }
         }
 
+        private void InputBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                AddTask();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
         private void AddButton_Click(object sender, EventArgs e)
+        {
+            AddTask();
+        }
+
+        private void AddTask()
         {
             string task = inputBox.Text.Trim();
             if (!string.IsNullOrEmpty(task))
@@ -155,6 +172,17 @@ namespace ToDoListWidget
                     AutoSize = true,
                     Font = new Font("Arial", 12, FontStyle.Regular),
                     ForeColor = Color.Black
+                };
+
+                CheckBox checkBox = new CheckBox()
+                {
+                    Checked = false,
+                    AutoSize = true
+                };
+
+                checkBox.CheckedChanged += (s, ev) =>
+                {
+                    taskLabel.Font = new Font(taskLabel.Font, checkBox.Checked ? FontStyle.Strikeout : FontStyle.Regular);
                 };
 
                 taskLabel.Click += (s, ev) =>
@@ -169,6 +197,7 @@ namespace ToDoListWidget
                     BackColor = Color.Transparent
                 };
 
+                taskContainer.Controls.Add(checkBox);
                 taskContainer.Controls.Add(taskLabel);
                 taskPanel.Controls.Add(taskContainer);
 
