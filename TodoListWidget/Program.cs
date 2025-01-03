@@ -19,7 +19,7 @@ namespace ToDoListWidget
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.Manual;
             this.TopMost = true;
-            this.Location = new Point(Screen.PrimaryScreen.WorkingArea.Width - this.Width - 10, 10);
+            this.Location = new Point(0, 0);
 
             toDoList = new ListBox() { Top = 10, Left = 10, Width = 260, Height = 250 };
             inputBox = new TextBox() { Top = 270, Left = 10, Width = 180 };
@@ -40,13 +40,29 @@ namespace ToDoListWidget
             trayIcon.Visible = true;
 
             ContextMenu trayMenu = new ContextMenu();
-            trayMenu.MenuItems.Add("Show", (s, e) => this.Show());
+            trayMenu.MenuItems.Add("Show", (s, e) => {
+                this.Show();
+                this.WindowState = FormWindowState.Normal;
+                this.BringToFront();
+            });
             trayMenu.MenuItems.Add("Hide", (s, e) => this.Hide());
-            trayMenu.MenuItems.Add("Exit", (s, e) => Application.Exit());
+            trayMenu.MenuItems.Add("Exit", (s, e) => {
+                trayIcon.Visible = false;
+                Application.Exit();
+            });
 
             trayIcon.ContextMenu = trayMenu;
 
+            this.FormClosing += (s, e) => {
+                if (e.CloseReason == CloseReason.UserClosing)
+                {
+                    e.Cancel = true;
+                    this.Hide();
+                }
+            };
+
             this.Shown += (s, e) => this.Hide();
+            this.ShowInTaskbar = false;
         }
 
         private void AddButton_Click(object sender, EventArgs e)
