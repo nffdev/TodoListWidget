@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
@@ -7,10 +8,9 @@ namespace ToDoListWidget
 {
     public class ToDoForm : Form
     {
-        private ListBox toDoList;
+        private FlowLayoutPanel taskPanel;
         private TextBox inputBox;
         private Button addButton;
-        private Button removeButton;
         private NotifyIcon trayIcon;
 
         [DllImport("user32.dll")]
@@ -24,24 +24,33 @@ namespace ToDoListWidget
         public ToDoForm()
         {
             this.Text = "To-Do List";
-            this.Size = new Size(300, 400);
+            this.Size = new Size(200, 300);
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.Manual;
             this.TopMost = false;
             this.ShowInTaskbar = false;
+            this.BackColor = Color.LightBlue;
+            this.Region = new Region(GetRoundedRectanglePath(new Rectangle(0, 0, this.Width, this.Height), 40));
+            this.MinimumSize = new Size(150, 200);
 
-            toDoList = new ListBox() { Top = 10, Left = 10, Width = 260, Height = 250 };
-            inputBox = new TextBox() { Top = 270, Left = 10, Width = 180 };
-            addButton = new Button() { Text = "Add", Top = 270, Left = 200, Width = 70 };
-            removeButton = new Button() { Text = "Remove", Top = 310, Left = 10, Width = 260 };
+            taskPanel = new FlowLayoutPanel()
+            {
+                Top = 10,
+                Left = 10,
+                Width = 180,
+                Height = 200,
+                AutoScroll = true,
+                BackColor = Color.Transparent
+            };
+
+            inputBox = new TextBox() { Top = 220, Left = 10, Width = 120, BorderStyle = BorderStyle.FixedSingle };
+            addButton = new Button() { Text = "Add", Top = 220, Left = 140, Width = 50, FlatStyle = FlatStyle.Flat };
 
             addButton.Click += AddButton_Click;
-            removeButton.Click += RemoveButton_Click;
 
-            this.Controls.Add(toDoList);
+            this.Controls.Add(taskPanel);
             this.Controls.Add(inputBox);
             this.Controls.Add(addButton);
-            this.Controls.Add(removeButton);
 
             trayIcon = new NotifyIcon();
             trayIcon.Icon = SystemIcons.Application;
@@ -73,6 +82,57 @@ namespace ToDoListWidget
             this.Shown += (s, e) => this.Hide();
 
             MoveToDesktop();
+
+            this.Resize += (s, e) =>
+            {
+                taskPanel.Width = this.ClientSize.Width - 20;
+                taskPanel.Height = this.ClientSize.Height - 100;
+                inputBox.Width = this.ClientSize.Width - 80;
+                addButton.Left = this.ClientSize.Width - 60;
+                addButton.Top = this.ClientSize.Height - 40;
+                inputBox.Top = this.ClientSize.Height - 40;
+            };
+
+            this.MouseDown += Form_MouseDown;
+            this.MouseMove += Form_MouseMove;
+        }
+
+        private bool dragging = false;
+        private Point dragCursorPoint;
+        private Point dragFormPoint;
+
+        private void Form_MouseDown(object sender, MouseEventArgs e)
+        {
+            dragging = true;
+            dragCursorPoint = Cursor.Position;
+            dragFormPoint = this.Location;
+        }
+
+        private void Form_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (dragging)
+            {
+                Point diff = Point.Subtract(Cursor.Position, new Size(dragCursorPoint));
+                this.Location = Point.Add(dragFormPoint, new Size(diff));
+            }
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            dragging = false;
+            base.OnMouseUp(e);
+        }
+
+        private GraphicsPath GetRoundedRectanglePath(Rectangle rect, int radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            path.StartFigure();
+            path.AddArc(rect.Left, rect.Top, radius, radius, 180, 90);
+            path.AddArc(rect.Right - radius, rect.Top, radius, radius, 270, 90);
+            path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
+            path.AddArc(rect.Left, rect.Bottom - radius, radius, radius, 90, 90);
+            path.CloseFigure();
+            return path;
         }
 
         private void MoveToDesktop()
@@ -89,24 +149,34 @@ namespace ToDoListWidget
             string task = inputBox.Text.Trim();
             if (!string.IsNullOrEmpty(task))
             {
-                toDoList.Items.Add(task);
+                Label taskLabel = new Label()
+                {
+                    Text = "• " + task,
+                    AutoSize = true,
+                    Font = new Font("Arial", 12, FontStyle.Regular),
+                    ForeColor = Color.Black
+                };
+
+                taskLabel.Click += (s, ev) =>
+                {
+                    taskPanel.Controls.Remove((Control)taskLabel.Parent);
+                };
+
+                FlowLayoutPanel taskContainer = new FlowLayoutPanel()
+                {
+                    Width = taskPanel.Width - 20,
+                    Height = 30,
+                    BackColor = Color.Transparent
+                };
+
+                taskContainer.Controls.Add(taskLabel);
+                taskPanel.Controls.Add(taskContainer);
+
                 inputBox.Clear();
             }
             else
             {
                 MessageBox.Show("Please enter a task.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private void RemoveButton_Click(object sender, EventArgs e)
-        {
-            if (toDoList.SelectedItem != null)
-            {
-                toDoList.Items.Remove(toDoList.SelectedItem);
-            }
-            else
-            {
-                MessageBox.Show("Please select a task to remove.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
