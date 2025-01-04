@@ -42,3 +42,5 @@ A simple and lightweight to-do list widget for Windows. It allows users to add t
 - [NotifyIcon Class Documentation](https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.notifyicon?view=windowsdesktop-9.0)
 
 ## Demo
+
+![Demo](https://raw.githubusercontent.com/nffdev/TodoListWidget/main/todolist-widget.png)
